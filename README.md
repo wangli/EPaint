@@ -1,3 +1,2 @@
 # EPaint
-paint
-A canvas drawing
+canvas drawing

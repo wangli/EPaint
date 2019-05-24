@@ -48,6 +48,7 @@ const overDraw = function (evt) {
 }
 var drawing = false
 const ctx = createCtx(), ePaint = new EPaint([], ctx)
+// ePaint.setType('circle2')
 ctx.fillStyle = createGradient();
 ctx.fillRect(0, 0, 800, 30);
 

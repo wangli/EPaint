@@ -19,6 +19,7 @@ export default class EPaint extends EventEmitter {
     /**
      * 构建线条实例
      * @param {object} data 初始化数据 
+     * @param {object} ctx getContext 2d对象 
      * @param {objcet} style 默认样式颜色
      */
     constructor(data, ctx, style) {
@@ -69,7 +70,7 @@ export default class EPaint extends EventEmitter {
             this.update()
         } else if (getDist(x, y, x2, y2) > this.follow) {
             this.tempTrack.push(...Object.values(track))
-            this.drawPolygon({ data: [x2, y2], type: this.currentType, size: this.size, follow: this.follow, style: this.style })
+            this.drawPolygon({ data: [x, y, x2, y2], type: this.currentType, size: this.size, follow: this.follow, style: this.style })
             this.startPiont = track
             this.update()
         }
@@ -133,11 +134,14 @@ export default class EPaint extends EventEmitter {
                 startX = endX, startY = endY
             }
         } else if (DrawStyle[type]) {
-            for (var i = 0, lg = track.length; i < lg; i += 2) {
-                DrawStyle[type].call(this.ctx, { x: track[i], y: track[i + 1], size: value.size })
+            for (var i = 2, lg = track.length; i < lg; i += 2) {
+                var endX = track[i], endY = track[i + 1]
+                DrawStyle[type].call(this.ctx, { startX, startY, endX, endY, size: value.size })
+                startX = track[i], startY = track[i + 1]
             }
         }
     }
+    // 清除路径
     clearPolygon(track) {
         for (var i = 0, lg = track.length; i < lg; i += 4) {
             this.ctx.clearRect(track[i], track[i + 1], track[i + 2], track[i + 3])
@@ -159,6 +163,10 @@ export default class EPaint extends EventEmitter {
     setData(value) {
         this.trackData = value
         this.drawHistory()
+    }
+    // 设置画笔类型
+    setType(value) {
+        this.currentType = value
     }
     update() {
         this.emit('update', this)

@@ -18,8 +18,8 @@ const createCanvas = function () {
 export default class EPaint extends EventEmitter {
     /**
      * 构建线条实例
-     * @param {object} data 初始化数据 
-     * @param {object} ctx getContext 2d对象 
+     * @param {object} data 初始化数据
+     * @param {object} ctx getContext 2d对象
      * @param {objcet} style 默认样式颜色
      */
     constructor(data, ctx, style) {
@@ -39,7 +39,7 @@ export default class EPaint extends EventEmitter {
     }
     /**
      * 划线样式
-     * @param {objcet} style 
+     * @param {objcet} style
      */
     setLineStyle(style) {
         Object.assign(this.style, style)
@@ -47,7 +47,7 @@ export default class EPaint extends EventEmitter {
     }
     /**
      * 开始绘画位置
-     * @param {point} track 
+     * @param {point} track
      */
     beginPoint(track) {
         this.tempTrack = Object.values(track)
@@ -59,7 +59,7 @@ export default class EPaint extends EventEmitter {
     }
     /**
      * 绘画当前位置坐标
-     * @param {point} track 
+     * @param {point} track
      */
     movePoint(track) {
         var x = this.startPiont.x, y = this.startPiont.y, x2 = track.x, y2 = track.y
@@ -88,7 +88,7 @@ export default class EPaint extends EventEmitter {
     }
     /**
      * 清除位置（橡皮路径）
-     * @param {rect} rect 
+     * @param {rect} rect
      */
     clear(rect) {
         this.clearData.push(rect.x, rect.y, rect.width, rect.height)
@@ -121,14 +121,14 @@ export default class EPaint extends EventEmitter {
     }
     /**
      * 绘制数据
-     * @param {array} track 
-     * @param {string} style 
+     * @param {array} track
+     * @param {string} style
      */
     drawPolygon(value) {
         var track = value.data, type = value.type || 'line', startX = track[0], startY = track[1]
         Object.assign(this.ctx, value.style)
         if (value.type == 'line') {
-            for (var i = 2, lg = track.length; i < lg; i += 2) {
+            for (var i = 0, lg = track.length; i < lg; i += 2) {
                 var endX = track[i], endY = track[i + 1]
                 if (DrawStyle[type]) DrawStyle[type].call(this.ctx, { startX, startY, endX, endY })
                 startX = endX, startY = endY
@@ -158,7 +158,7 @@ export default class EPaint extends EventEmitter {
     }
     /**
      * 设置绘图数据
-     * @param {array} value 
+     * @param {array} value
      */
     setData(value) {
         this.trackData = value

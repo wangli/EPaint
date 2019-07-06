@@ -1,4 +1,5 @@
 import EPaint from '../src'
+import data from './data'
 const createCtx = function (width = 800, height = 600) {
     var canvas = document.createElement('canvas')
     canvas.width = width
@@ -68,7 +69,7 @@ ctx.canvas.addEventListener('mouseup', overDraw)
 
 
 window.loadData = function () {
-
+    ePaint.setData(data)
 }
 window.outData = function () {
     console.log(JSON.stringify(ePaint.data))

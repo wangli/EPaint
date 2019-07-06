@@ -1,0 +1,144 @@
+<html>
+<head></head>
+<body>
+</body>
+<div style="display: block">
+    <button id="start">开始</button>
+    <button id="save" style="display: none">保存</button>
+</div>
+
+<script src="main.js"></script>
+<script>
+    var data = [],temp = [];
+    //开始
+    document.getElementById('start').addEventListener('click',function(){
+        document.getElementById('start').style.display = 'none';
+        document.getElementById('save').style.display = 'inline';
+        ePaint.trackData = [];
+        ctx.setLineDash([0,0]);
+        window.sign_start = true
+    });
+    //保存
+    document.getElementById('save').addEventListener('click',function(){
+        document.getElementById('start').style.display = 'inline';
+        document.getElementById('save').style.display = 'none';
+
+        if(ePaint.trackData.length>0){
+            temp = [...temp,...ePaint.trackData,];
+            data.push({
+                index:data.length,//重叠时用图层索引区分
+                data:[].concat.apply([],ePaint.trackData.map(a=>{
+                    return a.data
+                }))//二维数组转一维数组
+            });
+        }
+        window.sign_start = false
+
+    });
+
+    window.ctx.canvas.addEventListener('touchstart', startDraw);
+    window.ctx.canvas.addEventListener('mousedown', startDraw);
+    window.ctx.canvas.addEventListener('touchend', overDraw);
+    window.ctx.canvas.addEventListener('mouseup', overDraw);
+
+    /**
+     * 为每次的画画动作设置点击事件
+     * **/
+    function startDraw(evt){
+        if(window.sign_start === false){
+            var point = {
+                x: evt.offsetX || evt.targetTouches[0].clientX,
+                y: evt.offsetY || evt.targetTouches[0].clientY
+            };
+
+            data.forEach((a,i)=>{
+                var coords = {
+                    x:EvenInfinity(a.data)['min'],
+                    maxX:EvenInfinity(a.data)['max'],
+                    y:OddInfinity(a.data)['min'],
+                    maxY:OddInfinity(a.data)['max'],
+                    width:EvenInfinity(a.data)['max']-EvenInfinity(a.data)['min'],
+                    height:OddInfinity(a.data)['max']-OddInfinity(a.data)['min'],
+                };
+
+                if(
+                    point.x>coords.x&&point.x<coords.maxX&&
+                    point.y>coords.y&&point.y<coords.maxY
+                    // ctx.isPointInPath(point.x,point.y)
+                ){
+                    ePaint.trackData = temp;
+                    ctx.setLineDash([0,0]);
+                    window.ePaint.drawHistory();
+                    ctx.rect(coords.x,coords.y,coords.width,coords.height);
+                    ctx.setLineDash([6, 6]);
+                    ctx.stroke();
+                }
+            })
+        }
+    }
+
+
+    /**
+     * 不保存一个点的墨迹
+     * **/
+    function overDraw(){
+        if(ePaint.tempTrack.length>2){
+            window.ePaint.trackOver()
+        }
+    }
+
+
+    /**
+     * 辅助函数：返回数组奇数索引中最大的值和最小的值
+     *
+     * @return {min:number,max:number}
+     * **/
+    function OddInfinity(arr){
+
+        return {
+            min:Math.min.apply(null,arr.map((a,i)=>{
+                if(i%2 === 1){
+                    return a
+                }else {
+                    return +Infinity
+                }
+            })),
+            max:Math.max.apply(null,arr.map((a,i)=>{
+                if(i%2 === 1){
+                    return a
+                }else {
+                    return -Infinity
+                }
+            }))
+        }
+    }
+
+    /**
+     * 辅助函数：返回数组偶数索引中最大的值和最小的值
+     *
+     * @return {min:number,max:number}
+     * **/
+    function EvenInfinity(arr){
+
+        return {
+            min:Math.min.apply(null,arr.map((a,i)=>{
+                if(i%2 === 0){
+                    return a
+                }else {
+                    return +Infinity
+                }
+            })),
+            max:Math.max.apply(null,arr.map((a,i)=>{
+                if(i%2 === 0){
+                    return a
+                }else {
+                    return -Infinity
+                }
+            }))
+        }
+    }
+
+
+</script>
+
+</html>

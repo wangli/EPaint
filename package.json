@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "pub": "npm publish --access=public",
-    "start": "parcel example/index.html"
+    "start": "parcel example/index.html",
+    "start-sign": "parcel example/sign.html"
   },
   "keywords": [
     "draw",

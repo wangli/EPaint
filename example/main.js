@@ -36,7 +36,8 @@ const startDraw = function (evt) {
     }
 }
 const playDraw = function (evt) {
-    if (drawing) {
+    //TODO:新增只有点击开始时才能开始绘制
+    if (drawing&&window.sign_start) {
         ePaint.movePoint({
             x: evt.offsetX || evt.targetTouches[0].clientX,
             y: evt.offsetY || evt.targetTouches[0].clientY
@@ -47,7 +48,8 @@ const overDraw = function (evt) {
     drawing = false
 }
 var drawing = false
-const ctx = createCtx(), ePaint = new EPaint([], ctx)
+window.ctx = createCtx();
+window.ePaint = new EPaint([], ctx)
 // ePaint.setType('circle2')
 ctx.fillStyle = createGradient();
 ctx.fillRect(0, 0, 800, 30);

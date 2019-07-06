@@ -10,16 +10,16 @@ export default {
         }
     },
     circle: {
-        follow:0,
-        option: { size: 2 },
-        execute(startX, startY, endX, endY, size) {
+        follow:10,
+        option: { size: 3 },
+        execute(startX, startY, endX, endY, {size}) {
             this.beginPath();
             this.arc(startX, startY, size, 0, 2 * Math.PI)
             this.fill()
         }
     },
     circle2: {
-        follow:0,
+        follow:16,
         option: { size: 2, follow: 2 },
         execute(startX, startY, endX, endY, { size = 2, follow = 2 }) {
 

@@ -161,9 +161,15 @@ export default class EPaint extends EventEmitter {
         this.trackData = value
         this.drawHistory()
     }
-    // 设置画笔类型
-    setType(value) {
+    /**
+     * 设置画笔类型
+     * @param {string} value 
+     * @param {object} develop 
+     * 切换画笔，同时也是临时扩展画笔
+     */
+    setType(value, develop) {
         this.currentType = value
+        if (develop) Object.assign(DrawStyle, { [value]: develop })
     }
     update() {
         this.emit('update', this)

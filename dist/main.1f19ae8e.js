@@ -474,27 +474,28 @@ var _default = {
     }
   },
   circle: {
-    follow: 0,
+    follow: 10,
     option: {
-      size: 2
+      size: 3
     },
-    execute: function execute(startX, startY, endX, endY, size) {
+    execute: function execute(startX, startY, endX, endY, _ref) {
+      var size = _ref.size;
       this.beginPath();
       this.arc(startX, startY, size, 0, 2 * Math.PI);
       this.fill();
     }
   },
   circle2: {
-    follow: 0,
+    follow: 16,
     option: {
       size: 2,
       follow: 2
     },
-    execute: function execute(startX, startY, endX, endY, _ref) {
-      var _ref$size = _ref.size,
-          size = _ref$size === void 0 ? 2 : _ref$size,
-          _ref$follow = _ref.follow,
-          follow = _ref$follow === void 0 ? 2 : _ref$follow;
+    execute: function execute(startX, startY, endX, endY, _ref2) {
+      var _ref2$size = _ref2.size,
+          size = _ref2$size === void 0 ? 2 : _ref2$size,
+          _ref2$follow = _ref2.follow,
+          follow = _ref2$follow === void 0 ? 2 : _ref2$follow;
       var radian = Math.atan2(endY - startY, endX - startX);
       var place = 0;
       var dist = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
@@ -544,6 +545,8 @@ var _utils = require("./utils");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
@@ -814,12 +817,19 @@ function (_EventEmitter) {
     value: function setData(value) {
       this.trackData = value;
       this.drawHistory();
-    } // 设置画笔类型
+    }
+    /**
+     * 设置画笔类型
+     * @param {string} value 
+     * @param {object} develop 
+     * 切换画笔，同时也是临时扩展画笔
+     */
 
   }, {
     key: "setType",
-    value: function setType(value) {
+    value: function setType(value, develop) {
       this.currentType = value;
+      if (develop) Object.assign(_DrawStyle.default, _defineProperty({}, value, develop));
     }
   }, {
     key: "update",
@@ -1017,7 +1027,7 @@ var createCtx = function createCtx() {
 };
 
 var createGradient = function createGradient() {
-  var gdt = ctx.createLinearGradient(0, 0, 800, 0);
+  var gdt = ctx2.createLinearGradient(0, 0, 800, 0);
   gdt.addColorStop(0, "rgba(255, 0, 0, 255)");
   gdt.addColorStop(0.1666, "rgba(255, 0, 255, 255)");
   gdt.addColorStop(0.3333, "rgba(0, 0, 255, 255)");
@@ -1028,24 +1038,42 @@ var createGradient = function createGradient() {
   return gdt;
 };
 
-var startDraw = function startDraw(evt) {
+var colorBox = function colorBox(color) {
+  var gdx = ctx2.createLinearGradient(740, 0, 800, 0);
+  gdx.addColorStop(1, color);
+  gdx.addColorStop(0, 'rgba(255,255,255,1)');
+  ctx2.fillStyle = gdx;
+  ctx2.fillRect(740, 0, 800, 50);
+  var gdy = ctx2.createLinearGradient(740, 0, 740, 50);
+  gdy.addColorStop(0, 'rgba(0,0,0,0)');
+  gdy.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx2.fillStyle = gdy;
+  ctx2.fillRect(740, 0, 800, 50);
+};
+
+var setcolor = function setcolor(evt) {
   var point = {
     x: evt.offsetX || evt.targetTouches[0].clientX,
     y: evt.offsetY || evt.targetTouches[0].clientY
   };
+  var colorData = ctx2.getImageData(point.x, point.y, 1, 1).data;
+  var color = 'rgba(' + colorData[0] + ', ' + colorData[1] + ',' + colorData[2] + ', ' + colorData[3] + ')';
+  ePaint.setLineStyle({
+    fillStyle: color,
+    strokeStyle: color
+  });
 
-  if (point.y > 30) {
-    ePaint.beginPoint(point);
-    drawing = true;
-  } else {
-    var colorData = ctx.getImageData(point.x, point.y, 1, 1).data;
-    var color = 'rgba(' + colorData[0] + ', ' + colorData[1] + ',' + colorData[2] + ', ' + colorData[3] + ')';
-    ePaint.setLineStyle({
-      fillStyle: color,
-      strokeStyle: color
-    });
-    drawing = false;
+  if (point.x < 700) {
+    colorBox(color);
   }
+};
+
+var startDraw = function startDraw(evt) {
+  ePaint.beginPoint({
+    x: evt.offsetX || evt.targetTouches[0].clientX,
+    y: evt.offsetY || evt.targetTouches[0].clientY
+  });
+  drawing = true;
 };
 
 var playDraw = function playDraw(evt) {
@@ -1063,17 +1091,15 @@ var overDraw = function overDraw(evt) {
 };
 
 var drawing = false;
-var ctx = createCtx(),
+var ctx2 = createCtx(800, 50),
+    ctx = createCtx(),
     ePaint = new _src.default([], ctx); // ePaint.setType('circle2')
 
-ctx.fillStyle = createGradient();
-ctx.fillRect(0, 0, 800, 30);
-var btn = document.createElement('div');
-btn.innerText = "getData";
-btn.addEventListener('click', function (evt) {
-  console.log(JSON.stringify(ePaint));
-});
-document.body.appendChild(btn);
+ctx2.fillStyle = createGradient(ctx2);
+ctx2.fillRect(0, 0, 700, 50);
+ctx2.canvas.addEventListener('touchstart', setcolor);
+ctx2.canvas.addEventListener('mousedown', setcolor);
+colorBox('rgba(255,255,255,255)');
 ctx.canvas.addEventListener('touchstart', startDraw);
 ctx.canvas.addEventListener('touchmove', playDraw);
 ctx.canvas.addEventListener('touchend', overDraw);
@@ -1089,10 +1115,18 @@ window.outData = function () {
   console.log(JSON.stringify(ePaint.data));
 };
 
-window.revoke = function () {};
+window.revoke = function () {
+  ePaint.revoke();
+};
 
-window.clear = function () {};
-},{"../src":"../src/index.js","./data":"data.js"}],"../../../../Users/lovin/AppData/Local/Yarn/Data/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+window.penA = function () {
+  ePaint.setType("line");
+};
+
+window.penB = function () {
+  ePaint.setType("circle");
+};
+},{"../src":"../src/index.js","./data":"data.js"}],"O:/Users/wangli/AppData/Local/Yarn/Data/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -1120,7 +1154,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55552" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56309" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -1295,5 +1329,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../../Users/lovin/AppData/Local/Yarn/Data/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","main.js"], null)
+},{}]},{},["O:/Users/wangli/AppData/Local/Yarn/Data/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","main.js"], null)
 //# sourceMappingURL=/main.1f19ae8e.js.map

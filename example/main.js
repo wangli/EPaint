@@ -10,7 +10,7 @@ const createCtx = function (width = 800, height = 600) {
     return canvas.getContext('2d')
 }
 const createGradient = function () {
-    var gdt = ctx.createLinearGradient(0, 0, 800, 0)
+    var gdt = ctx2.createLinearGradient(0, 0, 800, 0)
     gdt.addColorStop(0, "rgba(255, 0, 0, 255)")
     gdt.addColorStop(0.1666, "rgba(255, 0, 255, 255)")
     gdt.addColorStop(0.3333, "rgba(0, 0, 255, 255)")
@@ -20,21 +20,36 @@ const createGradient = function () {
     gdt.addColorStop(1, "rgba(255, 0, 0, 255)")
     return gdt
 }
-
-const startDraw = function (evt) {
+const colorBox = function (color) {
+    var gdx = ctx2.createLinearGradient(740, 0, 800, 0);
+    gdx.addColorStop(1, color);
+    gdx.addColorStop(0, 'rgba(255,255,255,1)');
+    ctx2.fillStyle = gdx;
+    ctx2.fillRect(740, 0, 800, 50);
+    var gdy = ctx2.createLinearGradient(740, 0, 740, 50);
+    gdy.addColorStop(0, 'rgba(0,0,0,0)');
+    gdy.addColorStop(1, 'rgba(0,0,0,1)');
+    ctx2.fillStyle = gdy;
+    ctx2.fillRect(740, 0, 800, 50);
+}
+const setcolor = function (evt) {
     var point = {
         x: evt.offsetX || evt.targetTouches[0].clientX,
         y: evt.offsetY || evt.targetTouches[0].clientY
     }
-    if (point.y > 30) {
-        ePaint.beginPoint(point)
-        drawing = true
-    } else {
-        var colorData = ctx.getImageData(point.x, point.y, 1, 1).data
-        var color = 'rgba(' + colorData[0] + ', ' + colorData[1] + ',' + colorData[2] + ', ' + colorData[3] + ')'
-        ePaint.setLineStyle({ fillStyle: color, strokeStyle: color })
-        drawing = false
+    var colorData = ctx2.getImageData(point.x, point.y, 1, 1).data
+    var color = 'rgba(' + colorData[0] + ', ' + colorData[1] + ',' + colorData[2] + ', ' + colorData[3] + ')'
+    ePaint.setLineStyle({ fillStyle: color, strokeStyle: color })
+    if(point.x<700){
+        colorBox(color)
     }
+}
+const startDraw = function (evt) {
+    ePaint.beginPoint({
+        x: evt.offsetX || evt.targetTouches[0].clientX,
+        y: evt.offsetY || evt.targetTouches[0].clientY
+    })
+    drawing = true
 }
 const playDraw = function (evt) {
     if (drawing) {
@@ -49,16 +64,13 @@ const overDraw = function (evt) {
     drawing = false
 }
 var drawing = false
-const ctx = createCtx(), ePaint = new EPaint([], ctx)
+const ctx2 = createCtx(800, 50), ctx = createCtx(), ePaint = new EPaint([], ctx)
 // ePaint.setType('circle2')
-ctx.fillStyle = createGradient();
-ctx.fillRect(0, 0, 800, 30);
-var btn = document.createElement('div')
-btn.innerText="getData"
-btn.addEventListener('click',evt=>{
-    console.log(JSON.stringify(ePaint))
-})
-document.body.appendChild(btn)
+ctx2.fillStyle = createGradient(ctx2);
+ctx2.fillRect(0, 0, 700, 50);
+ctx2.canvas.addEventListener('touchstart', setcolor)
+ctx2.canvas.addEventListener('mousedown', setcolor)
+colorBox('rgba(255,255,255,255)')
 
 ctx.canvas.addEventListener('touchstart', startDraw)
 ctx.canvas.addEventListener('touchmove', playDraw)
@@ -75,8 +87,11 @@ window.outData = function () {
     console.log(JSON.stringify(ePaint.data))
 }
 window.revoke = function () {
-
+    ePaint.revoke()
 }
-window.clear = function () {
-
+window.penA = function () {
+    ePaint.setType("line")
+}
+window.penB = function () {
+    ePaint.setType("circle")
 }

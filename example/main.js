@@ -44,6 +44,7 @@ const playDraw = function (evt) {
     }
 }
 const overDraw = function (evt) {
+    if (drawing) ePaint.trackOver()
     drawing = false
 }
 var drawing = false
@@ -51,7 +52,12 @@ const ctx = createCtx(), ePaint = new EPaint([], ctx)
 // ePaint.setType('circle2')
 ctx.fillStyle = createGradient();
 ctx.fillRect(0, 0, 800, 30);
-
+var btn = document.createElement('div')
+btn.innerText="getData"
+btn.addEventListener('click',evt=>{
+    console.log(JSON.stringify(ePaint))
+})
+document.body.appendChild(btn)
 
 ctx.canvas.addEventListener('touchstart', startDraw)
 ctx.canvas.addEventListener('touchmove', playDraw)

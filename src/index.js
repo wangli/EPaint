@@ -4,6 +4,7 @@ import { getDist } from './utils'
 /**
  * 2019/4/15
  * wangli
+ * v0.1.2
  */
 
 //画布尺寸
@@ -28,8 +29,6 @@ export default class EPaint extends EventEmitter {
         this.trackData = data || []
         this.style = { lineWidth: 2, fillStyle: "#333333", strokeStyle: "#333333", lineJoin: "round", lineCap: "round" }
         this.startPiont = { x: 0, y: 0 }
-        this.size = 2
-        this.follow = 6
         this.currentType = 'line'
         this.tempTrack = []
         this.clearData = []
@@ -48,12 +47,13 @@ export default class EPaint extends EventEmitter {
     /**
      * 开始绘画位置
      * @param {point} track 
+     *  {x:val,y:val}
      */
     beginPoint(track) {
         this.tempTrack = Object.values(track)
         this.startPiont = track
         if (this.currentType != 'line') {
-            this.drawPolygon({ data: Object.values(track), type: this.currentType, size: this.size, follow: this.follow, style: this.style })
+            this.drawPolygon({ data: Object.values(track), type: this.currentType, style: this.style, option: DrawStyle[this.currentType].option })
             this.update()
         }
     }
@@ -63,14 +63,10 @@ export default class EPaint extends EventEmitter {
      */
     movePoint(track) {
         var x = this.startPiont.x, y = this.startPiont.y, x2 = track.x, y2 = track.y
-        if (this.currentType == 'line') {
+        if (getDist(x, y, x2, y2) > (DrawStyle[this.currentType].follow || 0)) {
+            // 移动绘制的跟随间隔距离
             this.tempTrack.push(...Object.values(track))
-            this.drawPolygon({ data: [x, y, x2, y2], type: this.currentType, style: this.style })
-            this.startPiont = track
-            this.update()
-        } else if (getDist(x, y, x2, y2) > this.follow) {
-            this.tempTrack.push(...Object.values(track))
-            this.drawPolygon({ data: [x, y, x2, y2], type: this.currentType, size: this.size, follow: this.follow, style: this.style })
+            this.drawPolygon({ data: [x, y, x2, y2], type: this.currentType, style: this.style, option: DrawStyle[this.currentType].option })
             this.startPiont = track
             this.update()
         }
@@ -79,11 +75,14 @@ export default class EPaint extends EventEmitter {
      * 结束当前绘画路径
      */
     trackOver() {
-        if (this.currentType == 'line') {
-            this.trackData.push({ action: "drawing", type: this.currentType, style: Object.assign({}, this.style), data: [...this.tempTrack] })
-        } else {
-            this.trackData.push({ action: "drawing", type: this.currentType, size: this.size, follow: this.follow, style: Object.assign({}, this.style), data: [...this.tempTrack] })
-        }
+        // 保存路径数据
+        this.trackData.push({
+            action: "drawing",
+            type: this.currentType,
+            style: Object.assign({}, this.style),
+            data: [...this.tempTrack],
+            option: DrawStyle[this.currentType].option
+        })
         this.update()
     }
     /**
@@ -125,19 +124,17 @@ export default class EPaint extends EventEmitter {
      * @param {string} style 
      */
     drawPolygon(value) {
-        var track = value.data, type = value.type || 'line', startX = track[0], startY = track[1]
+        var track = value.data, type = value.type || 'line', startX = track[0], startY = track[1], option = value.option || {}
         Object.assign(this.ctx, value.style)
-        if (value.type == 'line') {
-            for (var i = 2, lg = track.length; i < lg; i += 2) {
-                var endX = track[i], endY = track[i + 1]
-                if (DrawStyle[type]) DrawStyle[type].call(this.ctx, { startX, startY, endX, endY })
-                startX = endX, startY = endY
-            }
-        } else if (DrawStyle[type]) {
-            for (var i = 2, lg = track.length; i < lg; i += 2) {
-                var endX = track[i], endY = track[i + 1]
-                DrawStyle[type].call(this.ctx, { startX, startY, endX, endY, size: value.size })
-                startX = track[i], startY = track[i + 1]
+        if (DrawStyle[type]) {
+            try {
+                for (var i = 2, lg = track.length; i < lg; i += 2) {
+                    var endX = track[i], endY = track[i + 1]
+                    DrawStyle[type].execute.call(this.ctx, startX, startY, endX, endY, option)
+                    startX = endX, startY = endY
+                }
+            } catch (error) {
+                console.warn(error);
             }
         }
     }

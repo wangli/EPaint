@@ -1,6 +1,6 @@
 {
   "name": "epaint",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   "author": "wangli",
   "license": "ISC",
   "dependencies": {
-    "eventemitter3": "^3.1.0"
+    "eventemitter3": "^4.0.0"
   },
   "devDependencies": {}
 }

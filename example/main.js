@@ -1,8 +1,8 @@
 import EPaint from '../src'
-const createCtx = function () {
+const createCtx = function (width = 800, height = 600) {
     var canvas = document.createElement('canvas')
-    canvas.width = 800
-    canvas.height = 600
+    canvas.width = width
+    canvas.height = height
     document.body.appendChild(canvas)
     canvas.style.backgroundColor = '#ffffff'
     document.body.style.backgroundColor = '#f1f1f1'
@@ -44,6 +44,7 @@ const playDraw = function (evt) {
     }
 }
 const overDraw = function (evt) {
+    if (drawing) ePaint.trackOver()
     drawing = false
 }
 var drawing = false
@@ -59,3 +60,17 @@ ctx.canvas.addEventListener('touchend', overDraw)
 ctx.canvas.addEventListener('mousedown', startDraw)
 ctx.canvas.addEventListener('mousemove', playDraw)
 ctx.canvas.addEventListener('mouseup', overDraw)
+
+
+window.loadData = function () {
+
+}
+window.outData = function () {
+    console.log(JSON.stringify(ePaint.data))
+}
+window.revoke = function () {
+
+}
+window.clear = function () {
+
+}

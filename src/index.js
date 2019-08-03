@@ -26,11 +26,19 @@ export default class EPaint extends EventEmitter {
     constructor(data, ctx, style) {
         super()
         this.__afresh = true
+        // 是否绘制连续线条
+        this.isline = true
+        // 绘制的路径
         this.trackData = data || []
+        // 默认样式
         this.style = { lineWidth: 2, fillStyle: "#333333", strokeStyle: "#333333", lineJoin: "round", lineCap: "round" }
+        // 当前开始位置
         this.startPiont = { x: 0, y: 0 }
+        // 绘制类型
         this.currentType = 'line'
+        // 临时路径
         this.tempTrack = []
+        // 清楚画布的数据
         this.clearData = []
         this.ctx = ctx || createCanvas().getContext("2d")
         if (style) Object.assign(this.style, style)
@@ -52,7 +60,8 @@ export default class EPaint extends EventEmitter {
     beginPoint(track) {
         this.tempTrack = Object.values(track)
         this.startPiont = track
-        if (this.currentType != 'line') {
+        this.isline = (typeof DrawStyle[this.currentType].isline == 'undefined') ? true : false;
+        if (this.currentType != 'line' && this.isline) {
             this.drawPolygon({ data: Object.values(track), type: this.currentType, style: this.style, option: DrawStyle[this.currentType].option })
             this.update()
         }
@@ -63,11 +72,19 @@ export default class EPaint extends EventEmitter {
      */
     movePoint(track) {
         var x = this.startPiont.x, y = this.startPiont.y, x2 = track.x, y2 = track.y
-        if (getDist(x, y, x2, y2) > (DrawStyle[this.currentType].follow || 0)) {
-            // 移动绘制的跟随间隔距离
-            this.tempTrack.push(...Object.values(track))
+        if (this.isline) {
+            if (getDist(x, y, x2, y2) > (DrawStyle[this.currentType].follow || 0)) {
+                // 移动绘制的跟随间隔距离
+                this.tempTrack.push(...Object.values(track))
+                this.drawPolygon({ data: [x, y, x2, y2], type: this.currentType, style: this.style, option: DrawStyle[this.currentType].option })
+                this.startPiont = track
+                this.update()
+            }
+        } else {
+            this.drawHistory()
+            this.tempTrack[2] = x2;
+            this.tempTrack[3] = y2;
             this.drawPolygon({ data: [x, y, x2, y2], type: this.currentType, style: this.style, option: DrawStyle[this.currentType].option })
-            this.startPiont = track
             this.update()
         }
     }

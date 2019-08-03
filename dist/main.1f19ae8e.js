@@ -473,7 +473,32 @@ var _default = {
       this.stroke();
     }
   },
-  circle: {
+  rect: {
+    isline: false,
+    option: {},
+    execute: function execute(startX, startY, endX, endY) {
+      this.beginPath();
+      this.rect(startX, startY, endX - startX, endY - startY);
+      this.stroke();
+    }
+  },
+  trian: {
+    isline: false,
+    option: {
+      size: 3
+    },
+    execute: function execute(startX, startY, endX, endY) {
+      var width = endX - startX;
+      var height = endY - startY;
+      this.beginPath();
+      this.moveTo(startX, startY);
+      this.lineTo(startX - width, startY + height);
+      this.lineTo(endX, endY);
+      this.closePath();
+      this.stroke();
+    }
+  },
+  circleline: {
     follow: 10,
     option: {
       size: 3
@@ -483,6 +508,53 @@ var _default = {
       this.beginPath();
       this.arc(startX, startY, size, 0, 2 * Math.PI);
       this.fill();
+    }
+  },
+  circle: {
+    isline: false,
+    option: {
+      size: 3
+    },
+    execute: function execute(startX, startY, endX, endY) {
+      var size = Math.abs(endX - startX);
+      this.beginPath();
+      this.arc(startX, startY, size, 0, 2 * Math.PI);
+      this.closePath();
+      this.stroke();
+    }
+  },
+  ellipse: {
+    isline: false,
+    option: {
+      size: 3
+    },
+    execute: function execute(startX, startY, endX, endY) {
+      var w = endX - startX,
+          h = endY - startY,
+          x = startX,
+          y = startY;
+      var k = 0.5522848;
+      var ox = w / 2 * k,
+          oy = h / 2 * k,
+          xe = x + w,
+          ye = y + h,
+          xm = x + w / 2,
+          ym = y + h / 2;
+      this.beginPath();
+      this.moveTo(x, ym);
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+      this.closePath();
+      this.stroke(); // var width = endX - startX, height = endY - startY;
+      // var k = (width / 0.75) / 2, w = width / 2, h = height / 2;
+      // this.beginPath();
+      // this.moveTo(startX, startY - h);
+      // this.bezierCurveTo(startX + k, startY - h, startX + k, startY + h, startX, startY + h);
+      // this.bezierCurveTo(startX - k, startY + h, startX - k, startY - h, startX, startY - h);
+      // this.closePath();
+      // this.stroke();
     }
   },
   circle2: {
@@ -608,21 +680,29 @@ function (_EventEmitter) {
     _classCallCheck(this, EPaint);
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(EPaint).call(this));
-    _this.__afresh = true;
-    _this.trackData = data || [];
+    _this.__afresh = true; // 是否绘制连续线条
+
+    _this.isline = true; // 绘制的路径
+
+    _this.trackData = data || []; // 默认样式
+
     _this.style = {
       lineWidth: 2,
       fillStyle: "#333333",
       strokeStyle: "#333333",
       lineJoin: "round",
-      lineCap: "round"
+      lineCap: "round" // 当前开始位置
+
     };
     _this.startPiont = {
       x: 0,
-      y: 0
+      y: 0 // 绘制类型
+
     };
-    _this.currentType = 'line';
-    _this.tempTrack = [];
+    _this.currentType = 'line'; // 临时路径
+
+    _this.tempTrack = []; // 清楚画布的数据
+
     _this.clearData = [];
     _this.ctx = ctx || createCanvas().getContext("2d");
     if (style) Object.assign(_this.style, style);
@@ -652,8 +732,9 @@ function (_EventEmitter) {
     value: function beginPoint(track) {
       this.tempTrack = Object.values(track);
       this.startPiont = track;
+      this.isline = typeof _DrawStyle.default[this.currentType].isline == 'undefined' ? true : false;
 
-      if (this.currentType != 'line') {
+      if (this.currentType != 'line' && this.isline) {
         this.drawPolygon({
           data: Object.values(track),
           type: this.currentType,
@@ -676,19 +757,32 @@ function (_EventEmitter) {
           x2 = track.x,
           y2 = track.y;
 
-      if ((0, _utils.getDist)(x, y, x2, y2) > (_DrawStyle.default[this.currentType].follow || 0)) {
-        var _this$tempTrack;
+      if (this.isline) {
+        if ((0, _utils.getDist)(x, y, x2, y2) > (_DrawStyle.default[this.currentType].follow || 0)) {
+          var _this$tempTrack;
 
-        // 移动绘制的跟随间隔距离
-        (_this$tempTrack = this.tempTrack).push.apply(_this$tempTrack, _toConsumableArray(Object.values(track)));
+          // 移动绘制的跟随间隔距离
+          (_this$tempTrack = this.tempTrack).push.apply(_this$tempTrack, _toConsumableArray(Object.values(track)));
 
+          this.drawPolygon({
+            data: [x, y, x2, y2],
+            type: this.currentType,
+            style: this.style,
+            option: _DrawStyle.default[this.currentType].option
+          });
+          this.startPiont = track;
+          this.update();
+        }
+      } else {
+        this.drawHistory();
+        this.tempTrack[2] = x2;
+        this.tempTrack[3] = y2;
         this.drawPolygon({
           data: [x, y, x2, y2],
           type: this.currentType,
           style: this.style,
           option: _DrawStyle.default[this.currentType].option
         });
-        this.startPiont = track;
         this.update();
       }
     }
@@ -1124,7 +1218,23 @@ window.penA = function () {
 };
 
 window.penB = function () {
+  ePaint.setType("circleline");
+};
+
+window.drawRect = function () {
+  ePaint.setType("rect");
+};
+
+window.drawTriant = function () {
+  ePaint.setType("trian");
+};
+
+window.drawCircle = function () {
   ePaint.setType("circle");
+};
+
+window.drawEllipse = function () {
+  ePaint.setType("ellipse");
 };
 },{"../src":"../src/index.js","./data":"data.js"}],"O:/Users/wangli/AppData/Local/Yarn/Data/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -1154,7 +1264,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56309" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50375" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

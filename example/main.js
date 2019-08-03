@@ -40,7 +40,7 @@ const setcolor = function (evt) {
     var colorData = ctx2.getImageData(point.x, point.y, 1, 1).data
     var color = 'rgba(' + colorData[0] + ', ' + colorData[1] + ',' + colorData[2] + ', ' + colorData[3] + ')'
     ePaint.setLineStyle({ fillStyle: color, strokeStyle: color })
-    if(point.x<700){
+    if (point.x < 700) {
         colorBox(color)
     }
 }
@@ -93,5 +93,17 @@ window.penA = function () {
     ePaint.setType("line")
 }
 window.penB = function () {
+    ePaint.setType("circleline")
+}
+window.drawRect = function () {
+    ePaint.setType("rect")
+}
+window.drawTriant = function () {
+    ePaint.setType("trian")
+}
+window.drawCircle = function () {
     ePaint.setType("circle")
+}
+window.drawEllipse = function () {
+    ePaint.setType("ellipse")
 }

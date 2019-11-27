@@ -12,6 +12,7 @@ const size = { width: 5120, height: 2880 }
 //创建一个画布对象
 const createCanvas = function () {
     let cvs = document.createElement('canvas')
+    cvs.id = 'cvs' + new Date().getTime() + "" + parseInt(100 + Math.random() * 100)
     cvs.width = size.width
     cvs.height = size.height
     return cvs

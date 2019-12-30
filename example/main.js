@@ -1,5 +1,5 @@
 import EPaint from '../src'
-import data from './data'
+import data from './data2'
 const createCtx = function (width = 800, height = 600) {
     var canvas = document.createElement('canvas')
     canvas.width = width
@@ -44,24 +44,42 @@ const setcolor = function (evt) {
         colorBox(color)
     }
 }
+var clear = false;
 const startDraw = function (evt) {
-    ePaint.beginPoint({
+    var point = {
         x: evt.offsetX || evt.targetTouches[0].clientX,
         y: evt.offsetY || evt.targetTouches[0].clientY
-    })
-    drawing = true
+    }
+    if (clear) {
+        Object.assign(point, { width: 10, height: 10 });
+        ePaint.clear(point);
+    } else {
+        ePaint.beginPoint(point)
+        drawing = true
+    }
 }
 const playDraw = function (evt) {
-    if (drawing) {
-        ePaint.movePoint({
-            x: evt.offsetX || evt.targetTouches[0].clientX,
-            y: evt.offsetY || evt.targetTouches[0].clientY
-        })
+    var point = {
+        x: evt.offsetX || evt.targetTouches[0].clientX,
+        y: evt.offsetY || evt.targetTouches[0].clientY
+    }
+    if (clear) {
+        Object.assign(point, { width: 10, height: 10 });
+        ePaint.clear(point);
+    } else {
+        if (drawing) {
+            ePaint.movePoint(point)
+        }
     }
 }
 const overDraw = function (evt) {
-    if (drawing) ePaint.trackOver()
-    drawing = false
+    if (clear) {
+        ePaint.clearOver();
+        clear = false;
+    } else {
+        if (drawing) ePaint.trackOver()
+        drawing = false
+    }
 }
 var drawing = false
 const ctx2 = createCtx(800, 50), ctx = createCtx(), ePaint = new EPaint([], ctx)
@@ -90,20 +108,29 @@ window.revoke = function () {
     ePaint.revoke()
 }
 window.penA = function () {
+    clear = false;
     ePaint.setType("line")
 }
 window.penB = function () {
+    clear = false;
     ePaint.setType("circleline")
 }
 window.drawRect = function () {
+    clear = false;
     ePaint.setType("rect")
 }
 window.drawTriant = function () {
+    clear = false;
     ePaint.setType("trian")
 }
 window.drawCircle = function () {
+    clear = false;
     ePaint.setType("circle")
 }
 window.drawEllipse = function () {
+    clear = false;
     ePaint.setType("ellipse")
+}
+window.rubber = function () {
+    clear = true;
 }
